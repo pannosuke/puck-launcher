@@ -43,11 +43,13 @@ class OnHockeyParserTest {
         val s = games[0].groups[0].streams.first { it.host == "plytvme" }
         assertEquals("plytvme", s.host)
         assertEquals("ESPN+", s.channel)
-        assertEquals("https://www.onhockey.tv/np_stream400.php?channel=//embedsports.me/nhl/toronto-maple-leafs-vs-colorado-avalanche-stream-1", s.url)
-        assertEquals("https://embedsports.me/nhl/toronto-maple-leafs-vs-colorado-avalanche-stream-1", s.embedUrl)
+        // Fixture links are scrubbed placeholders: np_stream400.php?channel=//example.invalid/stream/N
+        assertTrue(s.url, Regex("""https://www\.onhockey\.tv/np_stream400\.php\?channel=//example\.invalid/stream/\d+""").matches(s.url))
+        assertEquals("https:" + s.url.substringAfter("channel="), s.embedUrl)
         val vk = games[0].groups.first { it.label == "russian" }.streams.first { it.host == "vklive" }
-        assertEquals("https://www.onhockey.tv/np_vk.php?channel=-41593209%26id=456254654", vk.url)
-        assertEquals("https://vkvideo.ru/video_ext.php?oid=-41593209&id=456254654&autoplay=1", vk.embedUrl)
+        assertTrue(vk.url, Regex("""https://www\.onhockey\.tv/np_vk\.php\?channel=-1000%26id=\d+""").matches(vk.url))
+        val id = vk.url.substringAfter("%26id=")
+        assertEquals("https://vkvideo.ru/video_ext.php?oid=-1000&id=$id&autoplay=1", vk.embedUrl)
     }
 
     @Test fun emptyGameHasNote() {
@@ -60,7 +62,7 @@ class OnHockeyParserTest {
         val ahl = OnHockeyParser.parse(html, now, league = "AHL")
         assertTrue(ahl.isNotEmpty())
         val s = ahl.flatMap { g -> g.groups.flatMap { it.streams } }.first { it.host == "sportpl" }
-        assertTrue(s.url.startsWith("https://sportplus.watch/"))
+        assertTrue(s.url.startsWith("https://example.invalid/direct/"))
         assertNull(s.embedUrl)
         assertEquals("", s.channel)
     }

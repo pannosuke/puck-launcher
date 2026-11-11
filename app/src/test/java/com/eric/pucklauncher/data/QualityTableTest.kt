@@ -30,18 +30,18 @@ class QualityTableTest {
         assertEquals(Quality.UNKNOWN, q("lovecdn", "Sportsnet One"))
         assertEquals(Quality.HD1080, q("asiria", "TSN 3"))
         assertEquals(Quality.UNKNOWN, q("asiria", "Premier Sports 2"))
-        assertEquals(Quality.HD720, q("mtchor", "ESPN+", "https://matchora.to/embed/channel/555"))
-        assertEquals(Quality.UNKNOWN, q("mtchor", "TSN 4", "https://matchora.to/embed/channel/555"))
+        assertEquals(Quality.HD720, q("mtchor", "ESPN+", "https://example.invalid/embed/channel/555"))
+        assertEquals(Quality.UNKNOWN, q("mtchor", "TSN 4", "https://example.invalid/embed/channel/555"))
     }
 
     @Test fun mtchorChannelIdBeatsTitle() {
-        assertEquals(Quality.HD1080, q("mtchor", "TSN 4", "https://matchora.to/embed/channel/904213"))
-        assertEquals(Quality.HD720, q("mtchor", "TSN 4", "https://matchora.to/embed/channel/177347"))
+        assertEquals(Quality.HD1080, q("mtchor", "TSN 4", "https://example.invalid/embed/channel/904213"))
+        assertEquals(Quality.HD720, q("mtchor", "TSN 4", "https://example.invalid/embed/channel/177347"))
     }
 
     @Test fun urlHintForUnknownHosts() {
         assertEquals(Quality.HD1080, q("newhost", "", "https://x.example/embed/a-vs-b1080p"))
-        assertEquals(Quality.SD, q("vertex", "", "https://vertex.st/1080p")) // table wins over hint
+        assertEquals(Quality.SD, q("vertex", "", "https://example.invalid/1080p")) // table wins over hint
     }
 
     @Test fun sortOrderIs1080Then720ThenUnknownThenSd() {
