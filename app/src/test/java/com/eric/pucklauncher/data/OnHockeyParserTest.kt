@@ -40,7 +40,7 @@ class OnHockeyParserTest {
     }
 
     @Test fun streamFields() {
-        val s = games[0].groups[0].streams[0]
+        val s = games[0].groups[0].streams.first { it.host == "plytvme" }
         assertEquals("plytvme", s.host)
         assertEquals("ESPN+", s.channel)
         assertEquals("https://www.onhockey.tv/np_stream400.php?channel=//embedsports.me/nhl/toronto-maple-leafs-vs-colorado-avalanche-stream-1", s.url)

@@ -37,6 +37,9 @@ import com.eric.pucklauncher.ScheduleViewModel
 import com.eric.pucklauncher.UiState
 import com.eric.pucklauncher.data.Game
 import com.eric.pucklauncher.data.Phase
+import com.eric.pucklauncher.data.Quality
+import com.eric.pucklauncher.data.likely1080Count
+import com.eric.pucklauncher.data.quality
 import com.eric.pucklauncher.data.Stream
 import com.eric.pucklauncher.data.TimeFmt
 import com.eric.pucklauncher.data.phase
@@ -283,11 +286,19 @@ private fun GameCard(game: Game, now: Instant, selected: Boolean, onClick: () ->
             TeamLine(game.awayCity, game.away?.nickname, game.away?.abbrev, l?.awayScore)
             TeamLine(game.homeCity, game.home?.nickname, game.home?.abbrev, l?.homeScore, home = true)
             val n = game.streamCount
-            Text(
-                if (n > 0) "▶ $n stream${if (n == 1) "" else "s"} · ${game.groups.joinToString(" · ") { it.label }}"
-                else game.note ?: "No streams yet",
-                fontSize = 15.sp, color = if (n > 0) Color(0xFFCFE9FF) else Muted, maxLines = 2, overflow = TextOverflow.Ellipsis,
-            )
+            val hd = game.likely1080Count
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (hd > 0) Text(
+                    "$hd× 1080p",
+                    Modifier.background(qualityColors(Quality.HD1080).first, RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
+                    color = qualityColors(Quality.HD1080).second, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1,
+                )
+                Text(
+                    if (n > 0) "▶ $n stream${if (n == 1) "" else "s"} · ${game.groups.joinToString(" · ") { it.label }}"
+                    else game.note ?: "No streams yet",
+                    fontSize = 15.sp, color = if (n > 0) Color(0xFFCFE9FF) else Muted, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
@@ -298,6 +309,8 @@ fun FeedsPane(
     onOpenBrowser: (Stream) -> Unit, onPlayInApp: (Game, Stream) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var hideSd by rememberSaveable { mutableStateOf(false) }
+    val sdCount = game.groups.sumOf { g -> g.streams.count { it.quality == Quality.SD } }
     LazyColumn(modifier, contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item(key = "header") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -309,19 +322,29 @@ fun FeedsPane(
                     fontSize = 16.sp, color = Muted,
                 )
                 Text("Tap a stream to open it in your browser. ▶ plays it inside the app (beta).", fontSize = 14.sp, color = Muted)
+                Text("Quality badges are estimates from sampled streams: 1080p / 720p likely, SD = below 720p, ? = unknown.", fontSize = 14.sp, color = Muted)
+                if (sdCount > 0) Row(
+                    Modifier.heightIn(min = 56.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Switch(checked = hideSd, onCheckedChange = { hideSd = it })
+                    Text("Hide SD feeds ($sdCount)", fontSize = 18.sp)
+                }
             }
         }
         if (game.streamCount == 0) item(key = "empty") {
             Text(game.note ?: "No streams yet. They usually appear close to puck drop.", fontSize = 20.sp, modifier = Modifier.padding(vertical = 24.dp))
         }
-        game.groups.forEach { group ->
+        game.groups.forEach { g ->
+            val group = if (hideSd) g.copy(streams = g.streams.filter { it.quality != Quality.SD }) else g
+            if (group.streams.isEmpty()) return@forEach
             item(key = "g-${group.label}") {
                 Text(
                     group.label.uppercase(), fontSize = 18.sp, fontWeight = FontWeight.Black, color = Ice,
                     modifier = Modifier.padding(top = 12.dp),
                 )
             }
-            itemsIndexed(group.streams, key = { i, _ -> "s-${group.label}-$i" }) { i, s ->
+            itemsIndexed(group.streams, key = { i, st -> "s-${group.label}-$i-${st.url}" }) { i, s ->
                 StreamRow(i + 1, s, onOpen = { onOpenBrowser(s) }, onPlay = { onPlayInApp(game, s) })
             }
         }
@@ -337,7 +360,9 @@ private fun StreamRow(index: Int, s: Stream, onOpen: () -> Unit, onPlay: () -> U
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
             modifier = Modifier.weight(1f).heightIn(min = 68.dp),
         ) {
-            Column(Modifier.fillMaxWidth()) {
+            QualityBadge(s.quality)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
                 Text(s.channel.ifBlank { "Stream #$index" }, fontSize = 20.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("${s.host} · #$index · open in browser", fontSize = 13.sp, maxLines = 1)
             }
@@ -353,5 +378,23 @@ private fun StreamRow(index: Int, s: Stream, onOpen: () -> Unit, onPlay: () -> U
                 Text("beta", fontSize = 11.sp)
             }
         }
+    }
+}
+
+fun qualityColors(q: Quality): Pair<Color, Color> = when (q) {
+    Quality.HD1080 -> Color(0xFF1B8A3A) to Color.White
+    Quality.HD720 -> Color(0xFFF2B01E) to Color(0xFF1A1200)
+    Quality.SD -> Color(0xFF5B6470) to Color.White
+    Quality.UNKNOWN -> Color(0xFF26364D) to Color(0xFFCFE0F2)
+}
+
+@Composable
+private fun QualityBadge(q: Quality) {
+    val (bg, fg) = qualityColors(q)
+    Box(
+        Modifier.widthIn(min = 76.dp).heightIn(min = 44.dp).background(bg, RoundedCornerShape(10.dp)).padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(q.label, color = fg, fontSize = 20.sp, fontWeight = FontWeight.Black, maxLines = 1)
     }
 }

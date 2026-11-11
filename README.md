@@ -31,3 +31,8 @@ Keep `/home/box/.android/debug.keystore`: later builds only install over v1 if t
 - `ui/PuckApp.kt`: Compose UI. Compact = 1 column + full-screen feeds; ≥760dp wide (S24U landscape, DeX) = adaptive 320dp grid + side feeds pane.
 - `PlayerActivity.kt`: beta WebView player (popup/redirect/ad blocking, fullscreen video, Open in browser).
 - `Browser.kt`: Custom Tabs → default browser (Samsung Internet / Chrome), fallback ACTION_VIEW.
+
+## v1.1.0: stream quality badges
+- `data/Quality.kt`: built-in host reputation table (1080p / 720p / SD / ?) from sampled live streams, with per-channel
+  overrides for mtchor (channel id or title), lovecdn and asiria (channel title, e.g. "TSN 4"). Estimates, not measurements.
+- Feeds are sorted within each group: likely 1080p → 720p → unknown → SD. Game cards show "N× 1080p". Feeds view has a "Hide SD feeds" switch.

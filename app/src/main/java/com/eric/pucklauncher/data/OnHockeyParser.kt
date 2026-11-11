@@ -71,7 +71,7 @@ object OnHockeyParser {
         }
         return RawRow(
             m.groupValues[1].toInt() % 24, m.groupValues[2].toInt(), away, home,
-            groups.map { FeedGroup(it.key, it.value) },
+            groups.map { FeedGroup(it.key, it.value.sortedByQuality()) },
             notes.joinToString(" ").ifBlank { null },
         )
     }
