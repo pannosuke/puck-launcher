@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <!-- speed streaks -->
+    <path android:fillColor="#7FB6E6" android:pathData="M22,47h10v2.5h-10z M18,54h12v2.5h-12z M22,61h10v2.5h-10z" />
+    <!-- puck side -->
+    <path android:fillColor="#0E0E10" android:pathData="M33,50 L33,62 A21,8.5 0,0 0,75 62 L75,50 Z" />
+    <!-- side ridge highlight -->
+    <path android:fillColor="#3A3A40" android:pathData="M33,55 A21,8.5 0,0 0,75 55 L75,57 A21,8.5 0,0 1,33 57 Z" />
+    <!-- puck top -->
+    <path android:fillColor="#2A2A2E" android:pathData="M33,50 A21,8.5 0,1 0,75 50 A21,8.5 0,1 0,33 50 Z" />
+    <path android:fillColor="#4A4A52" android:pathData="M41,48 A13,4 0,0 1,67 48 A13,5 0,0 0,41 48 Z" />
+</vector>

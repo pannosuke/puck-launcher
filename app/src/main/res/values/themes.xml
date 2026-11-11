@@ -1,0 +1,10 @@
+<resources>
+    <style name="Theme.PuckLauncher" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/rink</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <style name="Theme.PuckLauncher.Player" parent="Theme.PuckLauncher">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>
